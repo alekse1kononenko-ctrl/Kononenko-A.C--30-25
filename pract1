@@ -58,7 +58,6 @@ www-data
 #!/bin/bash
 text="$1"
 len="${#text}"
-ogr=""
 for ((i=0; i<$((len + 2)); i++))
 do
         org="${org}-"
@@ -69,5 +68,15 @@ echo "+$org+"
 
 
 Задание № 4
+
+
+
+
+
+
+
+
+
+
 
 
