@@ -1,6 +1,7 @@
 """Цикл диалога и выполнение команд эмулятора."""
 
 from .parser import parse_command
+from .commands import COMMANDS
 
 
 class Shell:
@@ -32,13 +33,18 @@ class Shell:
             return False
 
     def dispatch(self, command, arguments):
-        """Обрабатывает выход и команды-заглушки первого этапа."""
+        """Выбирает команду по ее имени и обрабатывает exit."""
         if command == "exit":
             if arguments:
                 raise ValueError("exit: аргументы не поддерживаются")
             self.running = False
         elif command in ("ls", "cd"):
-            self.write(f"{command}: аргументы = {arguments!r}")
+            if self.vfs is None:
+                self.write(f"{command}: аргументы = {arguments!r}")
+            else:
+                COMMANDS[command](self, arguments)
+        elif command in COMMANDS:
+            COMMANDS[command](self, arguments)
         else:
             raise ValueError(f"неизвестная команда: {command}")
 

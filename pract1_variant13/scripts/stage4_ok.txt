@@ -1,0 +1,17 @@
+ls
+ls /readme.txt
+ls /docs /empty
+cd /docs
+ls
+cat guide.txt "file with spaces.txt"
+cd level2/level3
+cat note.txt
+cd ..
+cd .
+cd
+cd "$PR13_DIR"
+uname
+cat /binary.bin
+clear
+ls /
+exit

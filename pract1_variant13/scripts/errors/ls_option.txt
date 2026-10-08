@@ -1,0 +1,2 @@
+ls -x
+ls SHOULD_NOT_RUN

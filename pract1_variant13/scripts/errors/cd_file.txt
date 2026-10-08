@@ -1,0 +1,2 @@
+cd /readme.txt
+ls SHOULD_NOT_RUN

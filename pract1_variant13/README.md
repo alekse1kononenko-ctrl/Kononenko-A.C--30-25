@@ -37,3 +37,13 @@ ZIP не включаются в Git согласно требованиям к 
 `read_file` возвращает исходные байты. `add_entry` проверяет путь ZIP.
 Проверки вариантов VFS: `scripts/check_vfs.bat` и `scripts/check_vfs.ps1`.
 Стартовые сценарии этапа: `scripts/stage3_ok.txt`, `scripts/stage3_error.txt`.
+
+
+## Этап 4 Основные команды
+
+Стартовый сценарий `scripts/stage4_ok.txt` проверяет ls, cd, uname, cat,
+clear, exit и переменную PR13_DIR. Независимые ошибки проверяются отдельными
+сценариями `scripts/errors/*.txt`, поскольку выполнение прекращается на
+первой ошибке. `scripts/stage4_error.txt` показывает остановку.
+Команды реализованы функциями `list_command`, `cd_command`, `cat_command`,
+`uname_command`, `clear_command`; `no_options` отклоняет неизвестные опции.

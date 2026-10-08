@@ -1,0 +1,2 @@
+cd /docs /tmp
+ls SHOULD_NOT_RUN

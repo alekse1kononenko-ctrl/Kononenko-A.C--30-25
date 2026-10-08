@@ -1,0 +1,2 @@
+cat
+ls SHOULD_NOT_RUN

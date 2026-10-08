@@ -1,0 +1,2 @@
+cd /missing
+ls SHOULD_NOT_RUN

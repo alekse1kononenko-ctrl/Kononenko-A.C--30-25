@@ -1,0 +1,3 @@
+ls
+cat /missing.txt
+uname
