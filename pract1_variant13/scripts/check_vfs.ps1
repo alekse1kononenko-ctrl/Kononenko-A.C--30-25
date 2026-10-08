@@ -4,9 +4,9 @@ if (-not $env:PYTHON_EXE) { $env:PYTHON_EXE = 'python' }
 $env:PR13_DIR = '/docs'
 foreach ($case in @('minimal', 'several', 'deep')) {
     & $env:PYTHON_EXE -m src.main --vfs "data/$case.zip" `
-        --script scripts/stage3_ok.txt
+        --script scripts/vfs_smoke.txt
 }
 & $env:PYTHON_EXE -m src.main --vfs data/missing.zip `
-    --script scripts/stage3_ok.txt
+    --script scripts/vfs_smoke.txt
 & $env:PYTHON_EXE -m src.main --vfs data/invalid.zip `
-    --script scripts/stage3_ok.txt
+    --script scripts/vfs_smoke.txt

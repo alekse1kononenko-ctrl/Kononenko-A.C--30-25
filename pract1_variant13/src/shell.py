@@ -57,6 +57,7 @@ class Shell:
                     if not line.strip():
                         continue
                     self.write(self.prompt + line)
+                    # Ошибка запрещает выполнение следующих строк.
                     if not self.execute(line):
                         self.write(f"Скрипт остановлен: строка {number}")
                         return False

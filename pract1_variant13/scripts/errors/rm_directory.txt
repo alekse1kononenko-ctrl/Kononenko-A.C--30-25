@@ -1,0 +1,2 @@
+rm /docs
+ls SHOULD_NOT_RUN

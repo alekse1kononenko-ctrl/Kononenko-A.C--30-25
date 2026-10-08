@@ -84,3 +84,13 @@ class VirtualFileSystem:
         if path not in self.files:
             raise ValueError(f"{path}: файл не найден")
         return base64.b64decode(self.files[path])
+
+
+    def remove_file(self, path):
+        """Удаляет файл из словаря, не открывая исходный ZIP на запись."""
+        if path in self.directories:
+            raise ValueError(f"{path}: является каталогом")
+        if path not in self.files:
+            raise ValueError(f"{path}: файл не найден")
+        # Изменяется только объект VFS текущей сессии.
+        del self.files[path]

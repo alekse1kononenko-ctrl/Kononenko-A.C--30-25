@@ -65,10 +65,21 @@ def clear_command(shell, arguments):
     shell.write(CLEAR_SEQUENCE)
 
 
+def rm_command(shell, arguments):
+    """Удаляет один или несколько виртуальных файлов."""
+    no_options(arguments, "rm")
+    if not arguments:
+        raise ValueError("rm: укажите хотя бы один файл")
+    for argument in arguments:
+        path = shell.vfs.resolve(argument, shell.cwd)
+        shell.vfs.remove_file(path)
+
+
 COMMANDS = {
     "ls": list_command,
     "cd": cd_command,
     "cat": cat_command,
     "uname": uname_command,
     "clear": clear_command,
+    "rm": rm_command,
 }

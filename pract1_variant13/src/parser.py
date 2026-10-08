@@ -41,40 +41,59 @@ def append_unquoted(value, word, words):
             word.append(character)
 
 
+class ParseState:
+    """Хранит разобранные слова и состояние текущего символа."""
+
+    def __init__(self):
+        """Начинает разбор без открытой кавычки и без текущего слова."""
+        self.words, self.word = [], []
+        self.quote, self.index, self.started = "", 0, False
+
+    def consume(self, line, environment):
+        """Разбирает один символ с учетом открытых кавычек."""
+        character = line[self.index]
+        if self.quote == "'":
+            # В одинарных кавычках доллар является обычным символом.
+            if character == self.quote:
+                self.quote = ""
+            else:
+                self.word.append(character)
+            self.index += 1
+        elif character == "\\":
+            value, self.index = escaped_character(line, self.index)
+            self.word.append(value)
+            self.started = True
+        elif character == "$":
+            self.expand(line, environment)
+        else:
+            self.quote, self.started = read_plain(
+                character, self.quote, self.started, self.word, self.words,
+            )
+            self.index += 1
+
+    def expand(self, line, environment):
+        """Подставляет значение из окружения реального процесса Python."""
+        value, self.index = read_variable(line, self.index, environment)
+        if self.quote:
+            # Двойные кавычки сохраняют пробелы внутри одного аргумента.
+            self.word.append(value)
+            self.started = True
+        else:
+            append_unquoted(value, self.word, self.words)
+            self.started = bool(self.word) or self.started and not value
+
+
 def parse_command(line, environment=None):
     """Разбирает слова, кавычки, экранирование и $NAME/${NAME}."""
     environment = os.environ if environment is None else environment
-    words, word = [], []
-    quote, index, started = "", 0, False
-    while index < len(line):
-        character = line[index]
-        if quote == "'":
-            if character == quote:
-                quote = ""
-            else:
-                word.append(character)
-            index += 1
-        elif character == "\\":
-            value, index = escaped_character(line, index)
-            word.append(value)
-            started = True
-        elif character == "$":
-            value, index = read_variable(line, index, environment)
-            if quote:
-                word.append(value)
-            else:
-                append_unquoted(value, word, words)
-            started = started or bool(value)
-        else:
-            quote, started = read_plain(
-                character, quote, started, word, words,
-            )
-            index += 1
-    if quote:
+    state = ParseState()
+    while state.index < len(line):
+        state.consume(line, environment)
+    if state.quote:
         raise ValueError("не закрыта кавычка")
-    if word or started:
-        words.append("".join(word))
-    return words
+    if state.word or state.started:
+        state.words.append("".join(state.word))
+    return state.words
 
 
 def read_plain(character, quote, started, word, words):

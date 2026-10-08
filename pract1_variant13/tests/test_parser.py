@@ -41,3 +41,11 @@ class ParserTests(unittest.TestCase):
             with self.subTest(line=line):
                 with self.assertRaises(ValueError):
                     parse_command(line)
+
+
+    def test_expansion_trailing_space(self):
+        """Пробел после некавыченной подстановки не создает пустое слово."""
+        self.assertEqual(
+            parse_command("ls $ITEMS", {"ITEMS": "one two "}),
+            ["ls", "one", "two"],
+        )

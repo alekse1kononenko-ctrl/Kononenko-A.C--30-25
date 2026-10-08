@@ -1,0 +1,4 @@
+rm /tmp/delete_me.txt
+ls /tmp
+cat /tmp/delete_me.txt
+uname

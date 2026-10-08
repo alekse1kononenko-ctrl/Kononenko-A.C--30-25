@@ -1,0 +1,12 @@
+ls /
+cd /tmp
+ls
+cat delete_me.txt
+rm delete_me.txt second.txt
+ls
+cd ..
+cat /docs/level2/level3/note.txt
+uname
+clear
+ls /
+exit

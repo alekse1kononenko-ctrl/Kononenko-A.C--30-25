@@ -1,0 +1,2 @@
+rm /missing.txt
+ls SHOULD_NOT_RUN
