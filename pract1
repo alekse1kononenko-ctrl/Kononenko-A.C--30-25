@@ -1,2 +1,57 @@
 Задание №1
 
+_apt
+avahi
+backup
+bin
+colord
+cups-pk-helper
+daemon
+Debian-gdm
+dhcpcd
+dnsmasq
+fwupd-refresh
+games
+geoclue
+gnome-remote-desktop
+irc
+list
+lp
+mail
+man
+messagebus
+news
+nobody
+polkitd
+proxy
+root
+rtkit
+saned
+speech-dispatcher
+sshd
+sync
+sys
+systemd-network
+systemd-timesync
+tss
+usbmux
+user
+uucp
+vboxadd
+www-data
+
+Задание № 2
+
+137	MPLS-in-IP
+135 Mobility-Header
+60	IPv6-Opts
+59	IPv6-NoNxt
+58	IPv6-ICMP
+44	IPv6-Frag
+43	IPv6-Route
+38	IDPR-CMTP
+
+
+Заданеи № 3
+
+
