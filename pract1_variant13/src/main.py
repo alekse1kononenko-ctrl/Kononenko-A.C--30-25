@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 from .shell import Shell
+from .vfs import VirtualFileSystem
 
 
 def read_settings(argv=None):
@@ -18,7 +19,14 @@ def main(argv=None):
     settings = read_settings(argv)
     print(f"Конфигурация: VFS = {settings.vfs}")
     print(f"Конфигурация: скрипт = {settings.script or '(не задан)'}")
-    shell = Shell(Path(settings.vfs).stem)
+    try:
+        vfs = VirtualFileSystem.load(settings.vfs)
+    except ValueError as error:
+        print(f"Ошибка: {error}")
+        return 1
+    print(f"VFS загружена: файлов {len(vfs.files)}, "
+          f"каталогов {len(vfs.directories)}")
+    shell = Shell(Path(settings.vfs).stem, vfs)
     if settings.script and not shell.run_script(settings.script):
         return 1
     if shell.running:

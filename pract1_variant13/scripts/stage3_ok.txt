@@ -1,0 +1,5 @@
+ls
+ls /docs/level2/level3
+cd "$PR13_DIR"
+ls /binary.bin
+exit

@@ -1,0 +1,3 @@
+ls
+unknown
+ls SHOULD_NOT_RUN

@@ -25,3 +25,15 @@ Python 3.10 или новее. Используется только станд�
 После успешного скрипта без `exit` начинается интерактивный диалог.
 Проверки параметров: `scripts/check_parameters.bat` и
 `scripts/check_parameters.ps1`. На этом этапе VFS еще не загружается.
+
+
+## Этап 3 VFS
+
+`python scripts/create_vfs.py` создает учебные ZIP в игнорируемой папке data.
+ZIP не включаются в Git согласно требованиям к сгенерированным файлам.
+`VirtualFileSystem.load` читает ZIP без распаковки. Файлы хранятся в base64,
+каталоги в множестве виртуальных путей. `resolve` нормализует пути,
+`require_directory` проверяет каталог, `list_path` перечисляет содержимое,
+`read_file` возвращает исходные байты. `add_entry` проверяет путь ZIP.
+Проверки вариантов VFS: `scripts/check_vfs.bat` и `scripts/check_vfs.ps1`.
+Стартовые сценарии этапа: `scripts/stage3_ok.txt`, `scripts/stage3_error.txt`.
