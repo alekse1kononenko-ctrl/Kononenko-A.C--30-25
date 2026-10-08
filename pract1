@@ -54,4 +54,20 @@ www-data
 
 Заданеи № 3
 
+  GNU nano 8.4                         banner                                   
+#!/bin/bash
+text="$1"
+len="${#text}"
+ogr=""
+for ((i=0; i<$((len + 2)); i++))
+do
+        org="${org}-"
+done
+echo "+$org+"
+echo "| $text |"
+echo "+$org+"  
+
+
+Задание № 4
+
 
