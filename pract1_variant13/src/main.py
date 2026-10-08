@@ -1,36 +1,37 @@
-"""Чтение конфигурации и запуск консольного эмулятора."""
+"""Чтение двух параметров и запуск консольного эмулятора."""
 
 import argparse
 from pathlib import Path
-from .shell import Shell
-from .vfs import VirtualFileSystem
+
+from .shell import create_shell, repl, run_script
+from .vfs import load_vfs
 
 
 def read_settings(argv=None):
-    """Принимает путь ZIP VFS и необязательный стартовый скрипт."""
-    parser = argparse.ArgumentParser(description="Эмулятор Вариант 13")
+    """Принимает обязательный путь ZIP и необязательный путь скрипта."""
+    parser = argparse.ArgumentParser(description="Эмулятор: вариант 13")
     parser.add_argument("--vfs", required=True, help="путь ZIP VFS")
     parser.add_argument("--script", help="путь стартового скрипта")
     return parser.parse_args(argv)
 
 
 def main(argv=None):
-    """Печатает настройки, выполняет скрипт и запускает REPL."""
+    """Печатает параметры, загружает ZIP, выполняет скрипт и диалог."""
     settings = read_settings(argv)
     print(f"Конфигурация: VFS = {settings.vfs}")
     print(f"Конфигурация: скрипт = {settings.script or '(не задан)'}")
     try:
-        vfs = VirtualFileSystem.load(settings.vfs)
+        vfs = load_vfs(settings.vfs)
     except ValueError as error:
         print(f"Ошибка: {error}")
         return 1
-    print(f"VFS загружена: файлов {len(vfs.files)}, "
-          f"каталогов {len(vfs.directories)}")
-    shell = Shell(Path(settings.vfs).stem, vfs)
-    if settings.script and not shell.run_script(settings.script):
+    print(f"VFS загружена: файлов {len(vfs['files'])}, "
+          f"каталогов {len(vfs['directories'])}")
+    shell = create_shell(Path(settings.vfs).stem, vfs)
+    if settings.script and not run_script(shell, settings.script):
         return 1
-    if shell.running:
-        shell.repl()
+    if shell["running"]:
+        repl(shell)
     return 0
 
 

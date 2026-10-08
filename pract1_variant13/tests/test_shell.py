@@ -1,35 +1,58 @@
-"""Проверки базового диалога."""
+"""Проверки диалога, приглашения и завершения сессии."""
 
-import unittest
-from src.shell import Shell
+from unittest.mock import patch
+
+from src.shell import execute, get_prompt, repl
+from tests.helpers import make_shell
 
 
-class ShellTests(unittest.TestCase):
-    """Проверяет ошибки, приглашение и завершение сессии."""
+def test_prompt():
+    """Приглашение содержит имя VFS и текущий путь."""
+    shell, output = make_shell()
+    assert get_prompt(shell) == "test:/$ "
+    assert execute(shell, "cd /docs")
+    assert get_prompt(shell) == "test:/docs$ "
 
-    def setUp(self):
-        """Перехватывает вывод, не меняя системную консоль."""
-        self.output = []
-        self.shell = Shell("demo", write=self.output.append)
 
-    def test_prompt(self):
-        """В приглашении присутствует имя VFS."""
-        self.assertEqual(self.shell.prompt, "demo:/$ ")
+def test_unknown_and_parser_error():
+    """Ошибки разбора и команд не завершают интерактивную сессию."""
+    shell, output = make_shell()
+    assert not execute(shell, "unknown")
+    assert not execute(shell, 'ls "')
+    assert shell["running"]
+    assert len(output) == 2
 
-    def test_unknown_and_parser_error(self):
-        """Ошибки не прекращают интерактивную сессию."""
-        self.assertFalse(self.shell.execute("unknown"))
-        self.assertFalse(self.shell.execute('ls "'))
-        self.assertTrue(self.shell.running)
 
-    def test_exit(self):
-        """Команда exit прекращает работу без аргументов."""
-        self.assertFalse(self.shell.execute("exit extra"))
-        self.assertTrue(self.shell.execute("exit"))
-        self.assertFalse(self.shell.running)
+def test_exit():
+    """exit без аргументов завершает сессию."""
+    shell, output = make_shell()
+    assert not execute(shell, "exit extra")
+    assert shell["running"]
+    assert execute(shell, "exit")
+    assert not shell["running"]
 
-    def test_stubs(self):
-        """Заглушки выводят название и разобранные аргументы."""
-        self.assertTrue(self.shell.execute("ls a b"))
-        self.assertEqual(self.output[-1], "ls: аргументы = ['a', 'b']")
-        self.assertTrue(self.shell.execute("cd /home"))
+
+def test_empty_command():
+    """Пустая строка ничего не печатает и считается успешной."""
+    shell, output = make_shell()
+    assert execute(shell, "  ")
+    assert output == []
+    assert shell["running"]
+
+
+def test_repl_continues_after_error():
+    """После ошибочной команды пользователь может выполнить uname и exit."""
+    shell, output = make_shell()
+    with patch("builtins.input", side_effect=["unknown", "uname", "exit"]):
+        repl(shell)
+    assert "неизвестная команда" in output[0]
+    assert output[-1] == "UnixEmulator"
+    assert not shell["running"]
+
+
+def test_repl_eof_and_interrupt():
+    """Конец ввода завершает диалог, Ctrl+C позволяет продолжить ввод."""
+    shell, output = make_shell()
+    with patch("builtins.input", side_effect=[KeyboardInterrupt, EOFError]):
+        repl(shell)
+    assert output == [""]

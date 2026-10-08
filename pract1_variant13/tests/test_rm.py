@@ -1,50 +1,52 @@
-"""Проверки удаления только в памяти текущей сессии."""
+"""Проверки удаления файлов только в памяти текущей сессии."""
 
-import hashlib
 from pathlib import Path
-import tempfile
-import unittest
+from tempfile import TemporaryDirectory
 from zipfile import ZipFile
-from src.shell import Shell
-from src.vfs import VirtualFileSystem
+
+from src.shell import create_shell, execute
+from src.vfs import list_path, load_vfs, read_file
+from tests.helpers import make_shell
 
 
-class RemoveTests(unittest.TestCase):
-    """Проверяет исчезновение файла и сохранность источника VFS."""
-
-    def setUp(self):
-        """Создает архив с двумя файлами и каталогом."""
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.path = Path(self.temp.name) / "vfs.zip"
-        with ZipFile(self.path, "w") as archive:
+def test_remove_and_archive_unchanged():
+    """Удаление меняет словарь; повторная загрузка возвращает файл."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "vfs.zip"
+        with ZipFile(path, "w") as archive:
             archive.writestr("tmp/a.txt", "A")
             archive.writestr("tmp/b.txt", "B")
-        self.output = []
-        self.shell = Shell(
-            "test", VirtualFileSystem.load(self.path), self.output.append,
-        )
+        before = path.read_bytes()
+        output = []
+        shell = create_shell("test", load_vfs(path), output.append)
+        assert execute(shell, "rm /tmp/a.txt")
+        assert "/tmp/a.txt" not in shell["vfs"]["files"]
+        assert not execute(shell, "cat /tmp/a.txt")
+        assert path.read_bytes() == before
+        assert list(Path(directory).iterdir()) == [path]
+        assert read_file(load_vfs(path), "/tmp/a.txt") == b"A"
 
-    def test_remove_and_archive_unchanged(self):
-        """Удаление меняет VFS; байты архива не меняются."""
-        before = hashlib.sha256(self.path.read_bytes()).hexdigest()
-        self.assertTrue(self.shell.execute("rm /tmp/a.txt"))
-        self.assertNotIn("/tmp/a.txt", self.shell.vfs.files)
-        self.assertFalse(self.shell.execute("cat /tmp/a.txt"))
-        after = hashlib.sha256(self.path.read_bytes()).hexdigest()
-        self.assertEqual(before, after)
-        restored = VirtualFileSystem.load(self.path)
-        self.assertEqual(restored.read_file("/tmp/a.txt"), b"A")
 
-    def test_multiple_relative_files(self):
-        """Можно удалить несколько файлов относительно cwd."""
-        self.assertTrue(self.shell.execute("cd /tmp"))
-        self.assertTrue(self.shell.execute("rm a.txt b.txt"))
-        self.assertEqual(self.shell.vfs.list_path("/tmp"), [])
+def test_multiple_relative_files():
+    """Несколько файлов удаляются относительно текущей папки."""
+    shell, output = make_shell()
+    assert execute(shell, "cd /tmp")
+    assert execute(shell, "rm a.txt b.txt")
+    assert list_path(shell["vfs"], "/tmp") == []
 
-    def test_remove_errors(self):
-        """rm отклоняет каталог, отсутствующий файл и неверный вызов."""
-        for line in ["rm", "rm /tmp", "rm /missing", "rm -r /tmp"]:
-            with self.subTest(line=line):
-                self.assertFalse(self.shell.execute(line))
-        self.assertEqual(len(self.shell.vfs.files), 2)
+
+def test_remove_errors():
+    """rm отклоняет каталог, отсутствующий файл и неверный вызов."""
+    shell, output = make_shell()
+    before = shell["vfs"]["files"].copy()
+    for line in ["rm", "rm /tmp", "rm /missing", "rm -r /tmp"]:
+        assert not execute(shell, line), line
+    assert shell["vfs"]["files"] == before
+
+
+def test_multiple_files_stop_at_error():
+    """Файлы обрабатываются слева направо до первой ошибки."""
+    shell, output = make_shell()
+    assert not execute(shell, "rm /tmp/a.txt /missing /tmp/b.txt")
+    assert "/tmp/a.txt" not in shell["vfs"]["files"]
+    assert "/tmp/b.txt" in shell["vfs"]["files"]

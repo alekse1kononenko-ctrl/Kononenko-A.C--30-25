@@ -1,67 +1,94 @@
-"""Проверки загрузки ZIP без извлечения и изменений на диске."""
+"""Проверки ZIP, вложенных путей и сохранности данных на диске."""
 
 import base64
-import hashlib
 from pathlib import Path
-import tempfile
-import unittest
+from tempfile import TemporaryDirectory
 from zipfile import ZipFile
-from src.vfs import VirtualFileSystem
+
+from src.vfs import list_path, load_vfs, read_file, resolve_path
+from tests.helpers import expect_error
 
 
-class VfsTests(unittest.TestCase):
-    """Проверяет память, двоичные данные, пути и ошибки архива."""
+def create_archive(path):
+    """Готовит ZIP с тремя уровнями, двоичными данными и пустой папкой."""
+    with ZipFile(path, "w") as archive:
+        archive.writestr("a/b/c/file.txt", "text")
+        archive.writestr("binary.bin", b"\x00\xff\x80")
+        archive.writestr("empty/", "")
 
-    def setUp(self):
-        """Создает временный ZIP и фиксирует исходный хеш."""
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.path = Path(self.temp.name) / "vfs.zip"
-        with ZipFile(self.path, "w") as archive:
-            archive.writestr("a/b/c/file.txt", "text")
-            archive.writestr("binary.bin", bytes([0, 255, 128]))
-            archive.writestr("empty/", "")
-        self.before = hashlib.sha256(self.path.read_bytes()).hexdigest()
-        self.vfs = VirtualFileSystem.load(self.path)
 
-    def test_three_levels(self):
-        """Родительские каталоги создаются даже без ZIP-записей."""
-        self.assertIn("/a/b/c", self.vfs.directories)
-        self.assertEqual(self.vfs.list_path("/a/b/c"), ["file.txt"])
+def test_three_levels():
+    """Родительские каталоги создаются даже без отдельных ZIP-записей."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "vfs.zip"
+        create_archive(path)
+        vfs = load_vfs(path)
+    assert "/a/b/c" in vfs["directories"]
+    assert list_path(vfs, "/a/b/c") == ["file.txt"]
+    assert read_file(vfs, "/a/b/c/file.txt") == b"text"
 
-    def test_binary_base64(self):
-        """Двоичные байты обратимо представлены строкой base64."""
-        encoded = self.vfs.files["/binary.bin"]
-        self.assertEqual(base64.b64decode(encoded), bytes([0, 255, 128]))
 
-    def test_no_disk_modification(self):
-        """После загрузки на диске остается только неизмененный ZIP."""
-        after = hashlib.sha256(self.path.read_bytes()).hexdigest()
-        self.assertEqual(after, self.before)
-        self.assertEqual(list(Path(self.temp.name).iterdir()), [self.path])
+def test_binary_base64():
+    """Двоичные байты представлены строкой base64 без потерь."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "vfs.zip"
+        create_archive(path)
+        vfs = load_vfs(path)
+    encoded = vfs["files"]["/binary.bin"]
+    assert base64.b64decode(encoded) == b"\x00\xff\x80"
 
-    def test_path_normalization(self):
-        """Проверяет относительный путь и переход к родителю."""
-        self.assertEqual(self.vfs.resolve("../c", "/a/b"), "/a/c")
-        self.assertEqual(self.vfs.resolve("../../..", "/a"), "/")
-        self.assertEqual(self.vfs.resolve("//a", "/"), "/a")
 
-    def test_loading_errors(self):
-        """Отсутствующий файл и обычный текст не принимаются как VFS."""
-        with self.assertRaisesRegex(ValueError, "не найден"):
-            VirtualFileSystem.load(self.path.with_name("missing.zip"))
-        invalid = self.path.with_name("invalid.zip")
-        invalid.write_text("invalid", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "ZIP"):
-            VirtualFileSystem.load(invalid)
+def test_no_disk_modification():
+    """После загрузки на диске остается только исходный неизменный ZIP."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "vfs.zip"
+        create_archive(path)
+        before = path.read_bytes()
+        load_vfs(path)
+        assert path.read_bytes() == before
+        assert list(Path(directory).iterdir()) == [path]
 
-    def test_invalid_archive_paths(self):
-        """Архив с выходом за корень или конфликтом путей отклоняется."""
-        for entries in [["../bad"], ["a", "a/file.txt"]]:
-            with self.subTest(entries=entries):
-                invalid = self.path.with_name("unsafe.zip")
-                with ZipFile(invalid, "w") as archive:
-                    for name in entries:
-                        archive.writestr(name, "x")
-                with self.assertRaises(ValueError):
-                    VirtualFileSystem.load(invalid)
+
+def test_path_normalization():
+    """Переход к родителю не выходит за виртуальный корень."""
+    assert resolve_path("../c", "/a/b") == "/a/c"
+    assert resolve_path("../../..", "/a") == "/"
+    assert resolve_path("//a", "/") == "/a"
+    assert resolve_path(".", "/a") == "/a"
+    expect_error(resolve_path, "")
+
+
+def test_loading_errors():
+    """Отсутствующий файл и обычный текст не принимаются как VFS."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "invalid.zip"
+        assert "не найден" in expect_error(load_vfs, path)
+        path.write_text("invalid", encoding="utf-8")
+        assert "ZIP" in expect_error(load_vfs, path)
+
+
+def test_invalid_archive_paths():
+    """Архивы с выходом за корень и конфликтами путей отклоняются."""
+    cases = [
+        ["../bad"], ["/absolute"], ["a\\b"],
+        ["a", "a/file.txt"], ["a/file.txt", "a"],
+        ["a/", "a"], ["a", "a/"], ["same", "./same"],
+    ]
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "unsafe.zip"
+        for entries in cases:
+            with ZipFile(path, "w") as archive:
+                for name in entries:
+                    archive.writestr(name, "x")
+            expect_error(load_vfs, path)
+
+
+def test_empty_archive():
+    """Пустой ZIP содержит виртуальный корень без файлов."""
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "empty.zip"
+        with ZipFile(path, "w"):
+            pass
+        vfs = load_vfs(path)
+    assert vfs == {"directories": {"/"}, "files": {}}
+    assert list_path(vfs, "/") == []
