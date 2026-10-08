@@ -69,9 +69,88 @@ echo "+$org+"
 
 Задание № 4
 
+#!/bin/bash
+text="$1"
+grep -oE '{A-Za-z_][A-Za-z0-9_]*' "$text" | sort -u
 
 
+Задание 5
 
+#!/bin/bash
+text="$1"
+sudo cp "$text" /usr/local/bin
+
+Задание №6
+
+for file in *.c *.js *.py
+do
+        f_line=$(head -n 1 "$file")
+        case "$file" in
+                *.c|*.js)
+                if echo "$f_line" | grep -qE '^[[:space:]]*(//|/\*)'; then
+                        echo "$f_line"
+                fi
+                ;;
+                *.py)
+                if echo "$f_line" | grep -qE '^[[:space:]]*#'; then
+                        echo "$f_line"
+                fi
+                ;;
+        esac
+done
+
+Задание №7
+
+
+#!/bin/bash
+
+path="$1"
+declare -A count
+declare -A files
+while IFS= read -r file
+do
+        hash=$(sha256sum "$file" | cut -d ' ' -f1)
+        ((count["$hash"]++))
+        files["$hash"]+="$file"$'\n'
+
+done < <(find "$path" -type f)
+for hash in "${!count[@]}"
+do
+        if ((count["$hash"] > 1)); then
+                printf '%s' "${files[$hash]}"
+        fi
+done
+
+
+задание №8
+
+
+#!/bin/bash
+ext="$1"
+files=()
+while IFS= read -r -d '' file
+do
+        files+=("$file")
+done < <(find . -maxdepth 1 -type f -name "*.$ext" -print0)
+if ((${#files[@]} > 0)); then
+        tar -cf archive.tar "${files[@]}"
+else
+        echo "files empty"
+fi
+
+задание №9
+
+#!/bin/bash
+input="$1"
+output="$2"
+sed 's/    /\t/g' "$input" > "$output"
+
+
+Задание № 10
+
+#!/bin/bash
+path="$1"
+find "$path" -maxdepth 1 -type f -name "*.txt" -empty
 
 
 
