@@ -42,6 +42,25 @@ class Shell:
         else:
             raise ValueError(f"неизвестная команда: {command}")
 
+    def run_script(self, path):
+        """Показывает диалог и останавливается на первой ошибке."""
+        try:
+            with open(path, encoding="utf-8-sig") as script:
+                for number, line in enumerate(script, start=1):
+                    line = line.rstrip("\r\n")
+                    if not line.strip():
+                        continue
+                    self.write(self.prompt + line)
+                    if not self.execute(line):
+                        self.write(f"Скрипт остановлен: строка {number}")
+                        return False
+                    if not self.running:
+                        break
+            return True
+        except (OSError, UnicodeError) as error:
+            self.write(f"Ошибка стартового скрипта: {error}")
+            return False
+
     def repl(self):
         """Повторяет чтение и выполнение, пока не введен exit."""
         while self.running:

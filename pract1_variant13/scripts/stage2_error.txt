@@ -1,0 +1,4 @@
+ls
+unknown
+cd SHOULD_NOT_RUN
+exit

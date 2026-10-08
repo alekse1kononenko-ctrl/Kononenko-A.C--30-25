@@ -1,0 +1,4 @@
+ls "$USERPROFILE"
+cd "$PR13_DIR"
+ls one two
+exit
