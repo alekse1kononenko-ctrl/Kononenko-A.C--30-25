@@ -1,0 +1,9 @@
+<config>
+  <package>Microsoft.Extensions.DependencyInjection</package>
+  <repository>https://api.nuget.org/v3/index.json</repository>
+  <test_mode>false</test_mode>
+  <version>8.0.0</version>
+  <output>injection.png</output>
+  <ascii>true</ascii>
+  <framework>net8.0</framework>
+</config>

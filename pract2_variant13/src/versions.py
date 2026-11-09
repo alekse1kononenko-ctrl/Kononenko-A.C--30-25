@@ -4,10 +4,13 @@ import re
 
 VERSION = re.compile(r"(\d+(?:\.\d+){0,3})(?:-([0-9A-Za-z.-]+))?")
 COMPONENTS = 4
+MIN_COMPONENTS = 3
 
 
 def version_key(value):
     """Compare NuGet versions after padding release numbers with zeroes."""
+    if not isinstance(value, str):
+        raise ValueError("Version must be a string")
     match = VERSION.fullmatch(value.lower())
     if not match:
         raise ValueError(f"Unsupported NuGet version: {value}")
@@ -23,7 +26,7 @@ def normalize(value):
     """Normalize numeric components for flat-container URLs."""
     release, stable, _ = version_key(value)
     numbers = list(release)
-    while len(numbers) > 3 and numbers[-1] == 0:
+    while len(numbers) > MIN_COMPONENTS and numbers[-1] == 0:
         numbers.pop()
     result = ".".join(map(str, numbers))
     return result if stable else result + "-" + value.split("-", 1)[1].lower()
@@ -44,10 +47,7 @@ def bounds(expression):
     if expression[-1] not in ")]" or expression.count(",") != 1:
         raise ValueError(f"Invalid version range: {expression}")
     low, high = (part.strip() for part in expression[1:-1].split(","))
-    for value in (low, high):
-        if value:
-            version_key(value)
-    return low, high, expression[0] == "[", expression[-1] == "]"
+    return interval(low, high, expression)
 
 
 def satisfies(version, expression):
@@ -74,3 +74,13 @@ def choose(versions, expression):
     if not candidates:
         raise ValueError(f"No available version satisfies {expression!r}")
     return min(candidates, key=version_key)
+
+
+def interval(low, high, expression):
+    """Validate endpoints of a NuGet interval."""
+    for value in (low, high):
+        if value:
+            version_key(value)
+    if low and high and version_key(low) > version_key(high):
+        raise ValueError("Reversed version interval")
+    return low, high, expression[0] == "[", expression[-1] == "]"

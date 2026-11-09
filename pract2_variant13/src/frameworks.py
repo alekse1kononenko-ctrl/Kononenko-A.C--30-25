@@ -2,9 +2,9 @@
 
 import re
 
-NET = re.compile(r"(?:net|\.netcoreapp)(\d+)\.\d+", re.I)
-STANDARD = {"netstandard2.1", ".netstandard2.1",
-            "netstandard2.0", ".netstandard2.0"}
+NET = re.compile(r"net(\d+)\.0", re.I)
+STANDARD = ("netstandard2.1", "netstandard2.0")
+MIN_MODERN_NET = 5
 
 
 def canonical(value):
@@ -14,28 +14,48 @@ def canonical(value):
         ".netcoreapp", "net")
 
 
+def validate_target(value):
+    """Allow modern .NET major TFMs and netstandard 2.0/2.1 only."""
+    target = canonical(value)
+    match = NET.fullmatch(target)
+    if target in STANDARD:
+        return target
+    if match and int(match[1]) >= MIN_MODERN_NET:
+        return target
+    raise ValueError("framework must be net5.0 or newer, or netstandard2.x")
+
+
+def modern_candidate(indexed, target):
+    """Find the nearest earlier supported modern .NET group."""
+    major = int(NET.fullmatch(target)[1])
+    candidates = [name for name in indexed if NET.fullmatch(name)
+                  and MIN_MODERN_NET <= int(NET.fullmatch(name)[1]) <= major]
+    if candidates:
+        return max(candidates, key=lambda name: int(NET.fullmatch(name)[1]))
+    return next((name for name in STANDARD if name in indexed), None)
+
+
+def fallback(indexed, target):
+    """Apply the documented limited compatibility chain."""
+    if NET.fullmatch(target):
+        return modern_candidate(indexed, target)
+    if target == "netstandard2.1" and "netstandard2.0" in indexed:
+        return "netstandard2.0"
+    return None
+
+
 def select_group(groups, target):
-    """Select exact TFM, older modern .NET or netstandard; never union."""
-    target = canonical(target)
+    """Select a single compatible group, preserving an empty exact group."""
+    target = validate_target(target)
     indexed = {canonical(g.get("targetFramework", "")): g for g in groups}
     if len(indexed) != len(groups):
         raise ValueError("Duplicate dependency framework group")
     if target in indexed:
         return indexed[target]
-    match = NET.fullmatch(target)
-    if match:
-        major = int(match[1])
-        candidates = [name for name in indexed if NET.fullmatch(name)
-                      and int(NET.fullmatch(name)[1]) <= major]
-        if candidates:
-            selected = max(candidates, key=lambda n: int(NET.fullmatch(n)[1]))
-            return indexed[selected]
-        for name in ("netstandard2.1", "netstandard2.0"):
-            if name in indexed:
-                return indexed[name]
-    if target in {"netstandard2.0", "netstandard2.1"}:
-        if "netstandard2.0" in indexed:
-            return indexed["netstandard2.0"]
+    candidate = fallback(indexed, target)
+    if candidate:
+        return indexed[candidate]
     if "" in indexed:
         return indexed[""]
-    raise ValueError(f"No supported group for {target}; groups: {list(indexed)}")
+    names = list(indexed)
+    raise ValueError(f"No supported group for {target}; groups: {names}")

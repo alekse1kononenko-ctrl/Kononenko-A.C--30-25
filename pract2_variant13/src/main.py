@@ -13,7 +13,7 @@ def main():
     """Run a development stage and report user errors with a nonzero status."""
     parser = argparse.ArgumentParser(description="NuGet dependency graph")
     parser.add_argument("config", help="XML configuration path")
-    parser.add_argument("--stage", type=int, choices=(1, 2, 3, 4), default=3)
+    parser.add_argument("--stage", type=int, choices=(1, 2, 3, 4, 5), default=5)
     args = parser.parse_args()
     try:
         run(load_config(args.config), args.stage)

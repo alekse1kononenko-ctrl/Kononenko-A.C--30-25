@@ -37,6 +37,16 @@ def json_object(data):
     return value
 
 
+def service_resources(data):
+    """Validate the shape of a V3 service index before resource discovery."""
+    resources = json_object(data).get("resources")
+    if not isinstance(resources, list):
+        raise ValueError("Service index resources must be a list")
+    if not all(isinstance(resource, dict) for resource in resources):
+        raise ValueError("Malformed service resource")
+    return resources
+
+
 def manifest(data):
     """Parse namespace-qualified nuspec XML without entities."""
     if b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
@@ -58,7 +68,7 @@ class NuGetRepository:
         self.framework = framework
         self.version_cache = {}
         self.dependency_cache = {}
-        resources = json_object(reader(url)).get("resources", [])
+        resources = service_resources(reader(url))
         matches = [r.get("@id", "") for r in resources
                    if r.get("@type") == "PackageBaseAddress/3.0.0"]
         if not matches:

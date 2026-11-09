@@ -1,6 +1,5 @@
 """Offline HTTP fixtures and NuGet dependency extraction tests."""
 
-import json
 import unittest
 from unittest.mock import patch
 from urllib.error import URLError
@@ -12,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 INDEX = b'{"resources":[{"@type":"PackageBaseAddress/3.0.0",' \
         b'"@id":"https://example.org/flat/"}]}'
-NUSPEC = b'''<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+NUSPEC = b'''<package xmlns="urn:nuget-test">
 <metadata><id>Root</id><version>2.0.0</version><dependencies>
 <group targetFramework="net8.0"><dependency id="Child" version="[1,2)"/>
 </group><group targetFramework="net48"><dependency id="Wrong" version="1"/>
@@ -88,7 +87,8 @@ class NuGetTests(unittest.TestCase):
 
     def test_invalid_metadata(self):
         """Reject missing service resources, malformed JSON and nuspec."""
-        for data in (b'{}', b'[]', b'no json'):
+        for data in (b'{}', b'[]', b'no json',
+                     b'{"resources":[1]}', b'{"resources":{}}'):
             with self.assertRaises(ValueError):
                 NuGetRepository("https://example.org", "net8.0",
                                 lambda url: data)
@@ -96,3 +96,38 @@ class NuGetTests(unittest.TestCase):
             manifest(b'<other/>')
         with self.assertRaises(ET.ParseError):
             manifest(b'<package>')
+
+
+class ManifestFailureTests(unittest.TestCase):
+    """Check malformed server responses and missing packages explicitly."""
+
+    def test_http_not_found(self):
+        """Preserve a useful HTTP status for an unavailable package."""
+        from urllib.error import HTTPError
+        error = HTTPError("https://example.org", 404, "Not found", {}, None)
+        with patch("src.nuget.urlopen", side_effect=error):
+            with self.assertRaisesRegex(ValueError, "HTTP 404"):
+                fetch("https://example.org/index.json")
+
+    def test_wrong_manifest_identity(self):
+        """Reject a different ID or version returned by the server."""
+        for old, new in [(b"<id>Root</id>", b"<id>Wrong</id>"),
+                         (b"<version>2.0.0", b"<version>1.0.0")]:
+            def changed(url):
+                """Alter only the real manifest fixture response."""
+                return reader(url).replace(old, new)
+            repo = NuGetRepository("https://example.org/v3.json", "net8.0",
+                                   changed)
+            with self.assertRaises(ValueError):
+                repo.dependencies(("Root", "2.0.0"))
+
+    def test_invalid_version_response(self):
+        """Reject a malformed versions array."""
+        def changed(url):
+            """Return a non-string version without contacting a network."""
+            return b'{"versions":[1]}' if url.endswith("index.json") \
+                else INDEX
+        repo = NuGetRepository("https://example.org/v3.json", "net8.0",
+                               changed)
+        with self.assertRaises(ValueError):
+            repo.versions("Root")

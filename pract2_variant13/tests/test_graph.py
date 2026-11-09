@@ -65,7 +65,7 @@ class GraphTests(unittest.TestCase):
         """A multi-root traversal preserves isolated repository vertices."""
         repo = LocalRepository(DATA / "isolated.json")
         self.assertEqual(len(breadth_first(repo.nodes(),
-                                          repo.dependencies).edges), 3)
+                                           repo.dependencies).edges), 3)
 
     def test_wrong_version(self):
         """The local repository also enforces the configured version."""

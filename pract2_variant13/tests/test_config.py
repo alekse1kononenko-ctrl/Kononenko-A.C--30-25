@@ -47,7 +47,8 @@ class ConfigTests(unittest.TestCase):
                    ("Microsoft.Extensions.Logging", "bad/name"),
                    ("https://api.nuget.org/v3/index.json", "relative"),
                    ("logging.png", "missing/out.png"),
-                   ("logging.png", "out.jpg")]
+                   ("logging.png", "out.jpg"),
+                   ("net8.0", "unknown")]
         for old, new in changes:
             with self.subTest(new=new), self.assertRaises(ValueError):
                 self.load(TEMPLATE.replace(old, new))

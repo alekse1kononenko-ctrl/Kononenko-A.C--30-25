@@ -9,12 +9,14 @@ from src.local import LocalRepository
 from src.nuget import NuGetRepository
 from src.versions import normalize
 from src.reverse import reverse_dependencies, scope_roots
+from src.visualize import visualize
 
 
 def settings(config):
     """Display validated settings with portable output paths."""
     for key, value in asdict(config).items():
-        if isinstance(value, Path) or (config.test_mode and key == "repository"):
+        local_path = config.test_mode and key == "repository"
+        if isinstance(value, Path) or local_path:
             value = os.path.relpath(value)
         print(f"{key} — {value}")
 
@@ -46,6 +48,8 @@ def run(config, stage):
     else:
         graph = breadth_first([node], repository.dependencies)
     print(describe(graph))
+    if stage == 5:
+        visualize(graph, node, config.output, config.ascii)
 
 
 def find_reverse(config, repository, node):

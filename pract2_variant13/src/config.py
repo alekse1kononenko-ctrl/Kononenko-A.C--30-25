@@ -3,10 +3,13 @@
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import os
+
+from src.frameworks import validate_target
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
-PACKAGE = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*")
+PACKAGE = re.compile(r"[A-Za-z0-9_]+(?:[.-][A-Za-z0-9_]+)*")
 VERSION = re.compile(r"\d+(?:\.\d+){0,3}(?:-[0-9A-Za-z.-]+)?")
 REQUIRED = {"package", "repository", "test_mode", "version", "output", "ascii"}
 OPTIONAL = {"framework", "reverse", "scope"}
@@ -62,12 +65,19 @@ def output_file(base, value):
         raise ValueError("Output must be a PNG file")
     if not path.parent.is_dir():
         raise ValueError("Output directory does not exist")
-    import os
     if not os.access(path.parent, os.W_OK):
         raise ValueError("Output directory is not writable")
     if path.exists() and not os.access(path, os.W_OK):
         raise ValueError("Output file is not writable")
     return path
+
+
+def validate_element(element, fields):
+    """Validate one scalar XML setting independently from the container."""
+    if element.tag in fields or element.tag not in REQUIRED | OPTIONAL:
+        raise ValueError(f"Unknown or duplicate setting: {element.tag}")
+    if element.attrib or list(element) or not (element.text or "").strip():
+        raise ValueError(f"Empty or nested setting: {element.tag}")
 
 
 def read_fields(path):
@@ -80,10 +90,7 @@ def read_fields(path):
         raise ValueError("Expected <config> without attributes")
     fields = {}
     for element in root:
-        if element.tag in fields or element.tag not in REQUIRED | OPTIONAL:
-            raise ValueError(f"Unknown or duplicate setting: {element.tag}")
-        if element.attrib or list(element) or not (element.text or "").strip():
-            raise ValueError(f"Empty or nested setting: {element.tag}")
+        validate_element(element, fields)
         fields[element.tag] = element.text.strip()
     missing = REQUIRED - fields.keys()
     if missing:
@@ -113,5 +120,5 @@ def load_config(filename):
         scope = resolve_file(path.parent, scope)
     return Config(fields["package"], repository, test_mode,
                   fields["version"], output, boolean(fields["ascii"]),
-                  fields.get("framework", "net8.0"),
+                  validate_target(fields.get("framework", "net8.0")),
                   boolean(fields.get("reverse", "false")), scope)
