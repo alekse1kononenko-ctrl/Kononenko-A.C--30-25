@@ -15,3 +15,27 @@ Python 3.10+, стандартная библиотека. Установка п
 В тестовом режиме repository — существующий локальный файл.
 Дополнительные параметры: framework (net8.0), reverse (false), scope.
 Ошибки возвращают код 1, неверный синтаксис CLI — код 2.
+
+## Получение зависимостей
+
+Этап 2: `./run.sh configs/nuget.xml --stage 2`; параметры: `--stage 1`.
+HTTP-клиент сам читает Service Index, выбирает PackageBaseAddress/3.0.0,
+запрашивает версии и `.nuspec` указанной версии. Модули: urllib, json,
+xml.etree.ElementTree. Сторонние средства получения зависимостей не применяются.
+
+Группы не объединяются. Выбирается точная framework; для современного .NET —
+ближайшая меньшая major-версия .NET, затем netstandard2.1/2.0, затем общая
+группа. Для netstandard2.1 допускается netstandard2.0. Другие несовместимые
+TFM вызывают ошибку. Это ограниченная политика, а не полная реализация
+NuGet.Frameworks; для проверенных примеров используется точная net8.0.
+
+Версии зависимостей: минимальная опубликованная версия, подходящая под
+интервал NuGet. Поддерживаются открытые/закрытые интервалы, точная [v],
+минимальная v и prerelease при явном указании в ограничении.
+Плавающие версии и build metadata отклоняются явно.
+Это граф требований манифестов, а не полный алгоритм restore проекта.
+
+Источники протокола:
+- https://learn.microsoft.com/nuget/api/package-base-address-resource
+- https://learn.microsoft.com/nuget/reference/nuspec
+- https://learn.microsoft.com/nuget/concepts/package-versioning
