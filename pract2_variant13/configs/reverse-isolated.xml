@@ -1,0 +1,8 @@
+<config>
+  <package>Z</package>
+  <repository>../tests/data/isolated.json</repository>
+  <test_mode>true</test_mode>
+  <version>1.0.0</version>
+  <output>isolated.png</output>
+  <ascii>true</ascii>
+</config>

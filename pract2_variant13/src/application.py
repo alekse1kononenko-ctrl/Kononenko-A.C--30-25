@@ -8,6 +8,7 @@ from src.graph import breadth_first, describe, label
 from src.local import LocalRepository
 from src.nuget import NuGetRepository
 from src.versions import normalize
+from src.reverse import reverse_dependencies, scope_roots
 
 
 def settings(config):
@@ -38,5 +39,23 @@ def run(config, stage):
         for child in repository.dependencies(node):
             print("  " + label(child))
         return
-    graph = breadth_first([node], repository.dependencies)
+    if stage == 4 or config.reverse:
+        graph = find_reverse(config, repository, node)
+        print("Reverse dependencies (target -> dependent):")
+        print(", ".join(map(label, graph.order[1:])) or "(none)")
+    else:
+        graph = breadth_first([node], repository.dependencies)
     print(describe(graph))
+
+
+def find_reverse(config, repository, node):
+    """Require an explicit finite universe for remote reverse dependencies."""
+    if config.test_mode:
+        roots = repository.nodes()
+        print("Scope: complete local repository")
+    else:
+        if not config.scope:
+            raise ValueError("NuGet reverse queries require an explicit scope")
+        roots = scope_roots(config.scope)
+        print("Scope: closure of explicit roots, not all of NuGet")
+    return reverse_dependencies(repository, node, roots)
