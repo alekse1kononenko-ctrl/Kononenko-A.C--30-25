@@ -1,0 +1,8 @@
+<config>
+  <package>A</package>
+  <repository>../tests/data/shared.json</repository>
+  <test_mode>true</test_mode>
+  <version>1.0.0</version>
+  <output>shared.png</output>
+  <ascii>true</ascii>
+</config>
