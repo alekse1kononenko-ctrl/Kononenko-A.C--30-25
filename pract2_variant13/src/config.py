@@ -7,7 +7,7 @@ import os
 
 from src.frameworks import validate_target
 from urllib.parse import urlsplit
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 PACKAGE = re.compile(r"[A-Za-z0-9_]+(?:[.-][A-Za-z0-9_]+)*")
 VERSION = re.compile(r"\d+(?:\.\d+){0,3}(?:-[0-9A-Za-z.-]+)?")
@@ -85,7 +85,7 @@ def read_fields(path):
     raw = path.read_bytes()
     if b"<!DOCTYPE" in raw.upper() or b"<!ENTITY" in raw.upper():
         raise ValueError("XML entities and DTD are forbidden")
-    root = ET.fromstring(raw)
+    root = element_tree.fromstring(raw)
     if root.tag != "config" or root.attrib:
         raise ValueError("Expected <config> without attributes")
     fields = {}

@@ -12,6 +12,9 @@ from src.shell import run_script
 from tests.helpers import make_shell
 
 
+ARGUMENT_ERROR_EXIT_CODE = 2
+
+
 def test_parameters():
     """Пути с пробелами передаются в настройки без изменений."""
     settings = read_settings(["--vfs", "a b.zip", "--script", "c d.txt"])
@@ -25,7 +28,7 @@ def test_missing_required():
         try:
             read_settings([])
         except SystemExit as error:
-            assert error.code == 2
+            assert error.code == ARGUMENT_ERROR_EXIT_CODE
         else:
             raise AssertionError("Ожидалась ошибка параметров")
 

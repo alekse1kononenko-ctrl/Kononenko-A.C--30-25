@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 import sys
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 from src.application import run
 from src.config import load_config
@@ -18,7 +18,7 @@ def main():
     try:
         run(load_config(args.config), args.stage)
         return 0
-    except (OSError, ValueError, ET.ParseError) as error:
+    except (OSError, ValueError, element_tree.ParseError) as error:
         message = str(error).replace(str(Path.cwd()), ".")
         print(f"Error: {message}", file=sys.stderr)
         return 1

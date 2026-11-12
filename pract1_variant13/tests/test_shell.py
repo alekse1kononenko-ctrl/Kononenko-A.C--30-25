@@ -6,6 +6,9 @@ from src.shell import execute, get_prompt, repl
 from tests.helpers import make_shell
 
 
+EXPECTED_ERROR_COUNT = 2
+
+
 def test_prompt():
     """Приглашение содержит имя VFS и текущий путь."""
     shell, output = make_shell()
@@ -20,7 +23,7 @@ def test_unknown_and_parser_error():
     assert not execute(shell, "unknown")
     assert not execute(shell, 'ls "')
     assert shell["running"]
-    assert len(output) == 2
+    assert len(output) == EXPECTED_ERROR_COUNT
 
 
 def test_exit():

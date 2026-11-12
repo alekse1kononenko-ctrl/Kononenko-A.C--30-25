@@ -7,7 +7,7 @@ from urllib.error import URLError
 from src.nuget import NuGetRepository, fetch, manifest
 from src.versions import choose, normalize, satisfies, version_key
 from src.frameworks import select_group
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 INDEX = b'{"resources":[{"@type":"PackageBaseAddress/3.0.0",' \
         b'"@id":"https://example.org/flat/"}]}'
@@ -66,8 +66,9 @@ class NuGetTests(unittest.TestCase):
 
     def test_framework_fallback(self):
         """Prefer exact or compatible framework; reject incompatible groups."""
-        root = ET.fromstring('<x><group targetFramework="netstandard2.0"/>'
-                             '<group targetFramework="net6.0"/></x>')
+        root = element_tree.fromstring(
+            '<x><group targetFramework="netstandard2.0"/>'
+            '<group targetFramework="net6.0"/></x>')
         self.assertEqual(select_group(list(root), "net8.0").get(
             "targetFramework"), "net6.0")
         with self.assertRaises(ValueError):
@@ -94,7 +95,7 @@ class NuGetTests(unittest.TestCase):
                                 lambda url: data)
         with self.assertRaises(ValueError):
             manifest(b'<other/>')
-        with self.assertRaises(ET.ParseError):
+        with self.assertRaises(element_tree.ParseError):
             manifest(b'<package>')
 
 

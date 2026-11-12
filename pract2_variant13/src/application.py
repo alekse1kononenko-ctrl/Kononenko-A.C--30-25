@@ -12,6 +12,12 @@ from src.reverse import reverse_dependencies, scope_roots
 from src.visualize import visualize
 
 
+CONFIG_STAGE = 1
+DIRECT_STAGE = 2
+REVERSE_STAGE = 4
+VISUALIZATION_STAGE = 5
+
+
 def settings(config):
     """Display validated settings with portable output paths."""
     for key, value in asdict(config).items():
@@ -30,25 +36,25 @@ def repository_for(config):
 
 def run(config, stage):
     """Execute the requested development stage against actual data."""
-    if stage == 1:
+    if stage == CONFIG_STAGE:
         settings(config)
         return
     repository = repository_for(config)
     name = config.package if config.test_mode else config.package.lower()
     node = (name, normalize(config.version))
-    if stage == 2:
+    if stage == DIRECT_STAGE:
         print(f"Direct dependencies of {label(node)}:")
         for child in repository.dependencies(node):
             print("  " + label(child))
         return
-    if stage == 4 or config.reverse:
+    if stage == REVERSE_STAGE or config.reverse:
         graph = find_reverse(config, repository, node)
         print("Reverse dependencies (target -> dependent):")
         print(", ".join(map(label, graph.order[1:])) or "(none)")
     else:
         graph = breadth_first([node], repository.dependencies)
     print(describe(graph))
-    if stage == 5:
+    if stage == VISUALIZATION_STAGE:
         visualize(graph, node, config.output, config.ascii)
 
 

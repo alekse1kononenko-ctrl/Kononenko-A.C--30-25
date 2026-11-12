@@ -3,7 +3,7 @@
 import json
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as element_tree
 
 from src.config import http_url, PACKAGE
 from src.frameworks import select_group
@@ -51,7 +51,7 @@ def manifest(data):
     """Parse namespace-qualified nuspec XML without entities."""
     if b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
         raise ValueError("DTD and XML entities are forbidden")
-    root = ET.fromstring(data)
+    root = element_tree.fromstring(data)
     for element in root.iter():
         element.tag = element.tag.rsplit("}", 1)[-1]
     if root.tag != "package" or root.find("metadata") is None:
