@@ -1,0 +1,6 @@
+/.qtcreator/
+/build/
+/build-*/
+/CMakeUserPresets.json
+/CMakeLists.txt.user*
+.DS_Store
