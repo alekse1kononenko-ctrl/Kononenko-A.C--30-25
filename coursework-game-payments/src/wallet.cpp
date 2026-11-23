@@ -17,4 +17,13 @@ bool Wallet::credit(Coins amount) noexcept {
     return true;
 }
 
+bool Wallet::debit(Coins amount) noexcept {
+    if (amount <= 0 || amount > balance_) {
+        return false;
+    }
+
+    balance_ -= amount;
+    return true;
+}
+
 }  // namespace game_payments

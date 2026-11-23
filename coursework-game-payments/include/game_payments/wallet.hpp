@@ -10,6 +10,7 @@ class Wallet {
 public:
     [[nodiscard]] Coins balance() const noexcept;
     [[nodiscard]] bool credit(Coins amount) noexcept;
+    [[nodiscard]] bool debit(Coins amount) noexcept;
 
 private:
     Coins balance_ = 0;
