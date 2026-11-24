@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="690" viewBox="0 0 1120 690"><rect width="100%" height="100%" fill="white"/>
+<rect x="36" y="28" width="315" height="86" rx="10" fill="#dcece7" stroke="#526967" stroke-width="3"/>
+<text x="193.5" y="56.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">Outpost</text>
+<text x="193.5" y="91.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Игра на raylib</text>
+<rect x="402" y="28" width="315" height="86" rx="10" fill="#dcece7" stroke="#526967" stroke-width="3"/>
+<text x="559.5" y="56.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">Другая игра</text>
+<text x="559.5" y="91.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Публичные заголовки</text>
+<rect x="769" y="28" width="315" height="86" rx="10" fill="#dcece7" stroke="#526967" stroke-width="3"/>
+<text x="926.5" y="56.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">console_shop</text>
+<text x="926.5" y="91.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Пример без графики</text>
+<rect x="320" y="194" width="480" height="97" rx="10" fill="#f2f6f5" stroke="#526967" stroke-width="3"/>
+<text x="560.0" y="227.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">PaymentService</text>
+<text x="560.0" y="262.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Проверка и проведение операций</text>
+<polyline points="195,114 195,150 440,150 440,193" fill="none" stroke="#526967" stroke-width="3"/><polygon points="440,193 434.0,179.0 446.0,179.0" fill="#526967"/>
+<polyline points="560,114 560,193" fill="none" stroke="#526967" stroke-width="3"/><polygon points="560,193 554.0,179.0 566.0,179.0" fill="#526967"/>
+<polyline points="929,114 929,150 680,150 680,193" fill="none" stroke="#526967" stroke-width="3"/><polygon points="680,193 674.0,179.0 686.0,179.0" fill="#526967"/>
+<rect x="36" y="371" width="446" height="89" rx="10" fill="#f2f6f5" stroke="#526967" stroke-width="3"/>
+<text x="259.0" y="400.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">Состояние</text>
+<text x="259.0" y="435.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Кошелёк, инвентарь, журнал</text>
+<rect x="638" y="371" width="446" height="89" rx="10" fill="#f2f6f5" stroke="#526967" stroke-width="3"/>
+<text x="861.0" y="400.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">TransactionStore</text>
+<text x="861.0" y="435.5" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Интерфейс загрузки и записи</text>
+<polyline points="370,291 370,326 260,326 260,371" fill="none" stroke="#526967" stroke-width="3"/><polygon points="260,371 254.0,357.0 266.0,357.0" fill="#526967"/>
+<polyline points="749,291 749,326 862,326 862,371" fill="none" stroke="#526967" stroke-width="3"/><polygon points="862,371 856.0,357.0 868.0,357.0" fill="#526967"/>
+<rect x="638" y="526" width="446" height="88" rx="10" fill="#dcece7" stroke="#526967" stroke-width="3"/>
+<text x="861.0" y="555.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">JsonStore</text>
+<text x="861.0" y="590.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Адаптер формата JSON</text>
+<rect x="36" y="526" width="446" height="88" rx="10" fill="#dcece7" stroke="#526967" stroke-width="3"/>
+<text x="259.0" y="555.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="29" fill="#182628">shop.json</text>
+<text x="259.0" y="590.0" text-anchor="middle" dominant-baseline="central" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#182628">Журнал версии 1</text>
+<polyline points="861,526 861,460" fill="none" stroke="#526967" stroke-width="3"/><polygon points="861,460 867.0,474.0 855.0,474.0" fill="#526967"/>
+<polyline points="638,570 482,570" fill="none" stroke="#526967" stroke-width="3"/><polygon points="482,570 496.0,564.0 496.0,576.0" fill="#526967"/>
+</svg>
