@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 project(GamePayments LANGUAGES CXX)
 
 add_library(game_payments STATIC src/wallet.cpp src/service.cpp)
@@ -61,4 +61,42 @@ endif()
 if(GAME_PAYMENTS_BUILD_STORAGE AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_executable(console_shop examples/console_shop.cpp)
     target_link_libraries(console_shop PRIVATE game_payments_json)
+endif()
+
+if(APPLE AND GAME_PAYMENTS_BUILD_STORAGE AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(demo_default ON)
+else()
+    set(demo_default OFF)
+endif()
+option(GAME_PAYMENTS_BUILD_DEMO "Build the native macOS demo" ${demo_default})
+if(GAME_PAYMENTS_BUILD_DEMO)
+    if(NOT APPLE OR NOT GAME_PAYMENTS_BUILD_STORAGE)
+        message(FATAL_ERROR "The demo needs macOS and GAME_PAYMENTS_BUILD_STORAGE=ON")
+    endif()
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(raylib
+        URL https://codeload.github.com/raysan5/raylib/tar.gz/refs/tags/6.2
+        URL_HASH SHA256=df7a13129b1bec9e73a6962efff170beba310ee6eab8f94cd000b7316b4db5ee)
+    FetchContent_MakeAvailable(raylib)
+
+    configure_file("${raylib_SOURCE_DIR}/LICENSE" "${CMAKE_CURRENT_BINARY_DIR}/raylib-LICENSE.txt" COPYONLY)
+    configure_file("${raylib_SOURCE_DIR}/src/external/glfw/LICENSE.md" "${CMAKE_CURRENT_BINARY_DIR}/GLFW-LICENSE.md" COPYONLY)
+    configure_file("${nlohmann_json_SOURCE_DIR}/LICENSE.MIT" "${CMAKE_CURRENT_BINARY_DIR}/json-LICENSE.txt" COPYONLY)
+    configure_file(LICENSE "${CMAKE_CURRENT_BINARY_DIR}/project-LICENSE.txt" COPYONLY)
+    set(demo_resources
+        assets/NotoSans-Regular.ttf assets/NotoSans-OFL.txt
+        "${CMAKE_CURRENT_BINARY_DIR}/raylib-LICENSE.txt"
+        "${CMAKE_CURRENT_BINARY_DIR}/GLFW-LICENSE.md"
+        "${CMAKE_CURRENT_BINARY_DIR}/json-LICENSE.txt"
+        "${CMAKE_CURRENT_BINARY_DIR}/project-LICENSE.txt")
+    set_source_files_properties(${demo_resources} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    add_executable(Outpost MACOSX_BUNDLE app/main.cpp ${demo_resources})
+    target_link_libraries(Outpost PRIVATE game_payments_json raylib)
+    set_target_properties(Outpost PROPERTIES
+        CXX_EXTENSIONS OFF
+        MACOSX_BUNDLE_BUNDLE_NAME "Форпост"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.alekse1kononenko.outpost"
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.0.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0")
 endif()
