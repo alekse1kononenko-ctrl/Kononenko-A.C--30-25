@@ -1,0 +1,23 @@
+start: declaration*
+declaration: NAME ":" value ";"
+?value: DECIMAL -> number
+      | STRING -> string
+      | array
+      | expression
+array: "{" [value ("," value)*] "}"
+expression: "$" OP operand operand "$"
+?operand: DECIMAL -> number
+        | INTEGER -> number
+        | NAME -> reference
+        | expression
+OP: "+" | "-" | "*" | "/" | "pow"
+DECIMAL.2: /[+-]?\d+\.\d+/
+INTEGER: /[+-]?\d+/
+NAME: /[a-zA-Z]+/
+STRING: /\[\[(?s:.*?)\]\]/
+LINE_COMMENT: /'[^\r\n]*/
+BLOCK_COMMENT: /<!--(?s:.*?)-->/
+%import common.WS
+%ignore WS
+%ignore LINE_COMMENT
+%ignore BLOCK_COMMENT
