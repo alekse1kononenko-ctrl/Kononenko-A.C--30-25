@@ -24,3 +24,18 @@ python3 -m unittest discover -s tests -v
 
 Официальная документация Lark:
 https://lark-parser.readthedocs.io/en/stable/grammar.html
+
+## Этап 2. Вычисления и TOML
+
+`src/evaluator.py` последовательно вычисляет объявления и хранит константы.
+`src/arithmetic.py` реализует `+`, `-`, `*`, `/`, `pow`.
+`src/translator.py:translate(source)` возвращает готовый текст TOML.
+Для сериализации применяется Tomli-W; тесты читают результат через tomllib.
+Строки сохраняются буквально, массивы могут содержать разные типы.
+Числа вычисляются как Python float; переполнение, деление на ноль,
+неизвестные имена, повторные объявления и неверные типы дают ошибки.
+Максимальная суммарная вложенность массивов и выражений: 64.
+
+Официальные источники:
+https://github.com/hukkin/tomli-w
+https://docs.python.org/3.12/library/tomllib.html
